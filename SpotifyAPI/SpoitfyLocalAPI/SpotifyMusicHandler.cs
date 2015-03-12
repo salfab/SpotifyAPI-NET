@@ -8,6 +8,8 @@ using System.IO;
 
 namespace SpotifyAPI.SpotifyLocalAPI
 {
+    using Newtonsoft.Json.Linq;
+
     public class SpotifyMusicHandler
     {
         [DllImport("user32.dll")]
@@ -59,7 +61,18 @@ namespace SpotifyAPI.SpotifyLocalAPI
         /// <param name="uri">The Spotify URI. Can be checked with <seealso cref="SpotifyLocalAPIClass.IsValidSpotifyURI"/></param>
         public void PlayURL(String uri)
         {
-            rh.SendPlayRequest(uri);
+            rh.QueryAsync("remote/play.json?uri=" + uri, true, true, -1).ContinueWith(
+                task =>
+                {
+                    var position = JArray.Parse(task.Result).First["playing_position"].Value<decimal>();
+                    if (position > 0)
+                    {
+                        this.Previous(); 
+                    }
+                });
+            
+
+            //rh.SendPlayRequest(uri);
         }
         /// <summary>
         /// Adds a Spotify URI to the Queue
